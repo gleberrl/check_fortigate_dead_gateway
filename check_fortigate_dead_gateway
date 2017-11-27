@@ -1,0 +1,234 @@
+#!/usr/bin/ksh
+
+############################# check_fortigate_dead_gateway #######################
+# Version : 1.0                                                                  #
+# Date : 27 Nov 2016                                                             #
+# Author : Gleber Ribeiro Leite (gleberrl@yahoo.com.br)                          #
+# Contributor(s):                                                                #
+##################################################################################
+#                                                                                #
+# Help : ./check_fortigate_dead_gateway -h                                       #
+#                                                                                #
+##################################################################################
+
+#Declare variables
+warning_loss=""
+warning_rtt=""
+community="0"
+ip="0"
+critical_loss=""
+critical_rtt=""
+snmp_version=0
+protocol_security=""
+authentication_passphrase=""
+security_level=""
+protocol_key=""
+protocol_passphrase=""
+username=""
+DG_STATUS_COMMUNITY="1.3.6.1.4.1.12356.101.4.8.2.1.3.1"
+DG_RTT_COMMUNITY="1.3.6.1.4.1.12356.101.4.8.2.1.4.1"
+DG_PKT_LOSS_COMMUNITY="1.3.6.1.4.1.12356.101.4.8.2.1.8.1"
+
+#Create argument(s)
+COUNTER=0
+ARGS=("$@")
+while [ $COUNTER -lt $# ]
+do
+    arg=${ARGS[$COUNTER]}
+    let COUNTER=COUNTER+1
+    nextArg=${ARGS[$COUNTER]}
+
+    if [[ $skipNext -eq 1 ]]; then
+        skipNext=0
+        continue
+    fi
+
+    argKey=""
+    argVal=""
+    if [[ "$arg" =~ ^\- ]]; then
+        # if the format is: -key=value
+        if [[ "$argKey" =~ \= ]]; then
+            argVal=$(echo "$argKey" | cut -d'=' -f2)
+            argKey=$(echo "$argKey" | cut -d'=' -f1)
+            skipNext=0
+
+        # if the format is: -key value
+        elif [[ ! "$nextArg" =~ ^\- ]]; then
+            argKey="$arg"
+            argVal="$nextArg"
+            skipNext=1
+
+        # if the format is: -key (a boolean flag)
+        elif [[ "$nextArg" =~ ^\- ]] || [[ -z "$nextArg" ]]; then
+            argKey="$arg"
+            argVal=""
+            skipNext=0
+        fi
+    # if the format has not flag, just a value.
+    else
+        argKey=""
+        argVal="$arg"
+        skipNext=0
+    fi
+
+    case "$argKey" in 
+        -H|--ip)
+            ip="$argVal"
+        ;;
+        -v|--snmp_version)
+            snmp_version="$argVal"
+        ;;
+        --wl|--warning_loss)
+            warning_loss="$argVal"
+        ;;
+        --wr|--warning_rtt)
+            warning_rtt="$argVal"
+        ;;
+        --cl|--critical_loss)
+            critical_loss="$argVal"
+        ;;		
+        --cr|--critical_rtt)
+            critical_rtt="$argVal"
+        ;;		
+        -C|--community)
+            community=$argVal
+        ;;
+        -a|--protocol_security)
+            protocol_security=$argVal
+        ;;
+        -A|--auth_pass)
+            authentication_passphrase=$argVal
+        ;;
+        -l|--security_level)
+            security_level=$argVal
+        ;;
+        -x|--protocol_key)
+            protocol_key=$argVal
+        ;;
+        -X|--passphrase)
+            protocol_passphrase=$argVal
+        ;;
+        -u|--username)
+            username=$argVal
+        ;;
+        -h|--help|-help|--h)
+            printf "\nUsage: check_fortigate_dead_gateway -H [IP ADDRESS] -C [COMMUNITY] -v [SNMP_Version - 2|3]\n\n-H --> IP ADDRESS\n-C --> COMMUNITY SNMP_V2\n-v --> SNMP Version\n--wl|--warning_loss --> WARNING PACKET LOSS VALUE - \(\%\) [OPTIONAL]\n--cl|--critical_loss --> CRITICAL PACKET LOSS VALUE - \(\%\) [OPTIONAL]\n--wr|--warning_rtt --> WARNING RTT VALUE - \(ms\) [OPTIONAL]\n--cr|--critical_rtt --> CRITICAL RTT VALUE - \(ms\) [OPTIONAL]\n=====If SNMP_V3=====\n-a --> protocol (MD5/SHA)\n-A --> Authentication PASSPHRASE\n-l --> security level (noAuthNoPriv|authNoPriv|authPriv)\n-x --> Protocol (DES|AES)\n-X --> Protocol PASSPHRASE\n-u --> Username (Security Username)\n\n"
+            exit
+        ;;
+    esac
+done
+
+###DATA INPUT - Check the required argument(s)
+if [[ $community != "0"  &&  $ip != "0"  &&  $snmp_version == "2" ]]; then
+	DG_STATUS=`snmpget $ip -v 2c -c $community $DG_STATUS_COMMUNITY -Ov | awk '{ printf $2 }'`
+        DG_RTT=`snmpget $ip -v 2c -c $community $DG_RTT_COMMUNITY -Ov | awk '{ printf $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l` 
+        DG_PKT_LOSS=`snmpget $ip -v 2c -c $community $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ printf $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
+fi
+
+if [[ $ip != "0"  &&  $snmp_version == "3" ]]; then
+	DG_STATUS=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_STATUS_COMMUNITY -Ov | awk '{ printf $2 }'`
+	DG_RTT=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_RTT_COMMUNITY -Ov | awk '{ print $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
+	DG_PKT_LOSS=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ print $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
+fi
+
+###########OUTPUT
+###DG UP / DOWN
+if [[ $DG_STATUS == 1 ]]; then
+DG_STATUS_OUTPUT="DOWN"
+else
+DG_STATUS_OUTPUT="UP"
+fi
+
+###UNKNOW
+if [[ $warning_loss != "" && $critical_loss == "" ]]; then
+        echo -e "Not is possible only warning packet loss alarm. You need warning and critical alarm threshold."
+        exit 3;
+elif [[ $warning_rtt != "" && $critical_rtt == "" ]]; then
+        echo -e "Not is possible only warning rtt alarm. You need warning and critical alarm threshold."
+        exit 3;
+###DG_STATUS
+elif [[ $DG_STATUS == 1 ]]; then
+        echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+        exit 2;
+###ALL ALARMS
+elif [[ $critical_loss != "" && $critical_rtt != "" && $warning_rtt != "" && $warning_loss != "" ]]; then
+	varc=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l || echo "$critical_rtt<$DG_RTT" | bc -l`
+	varw=`echo "$warning_loss<$DG_PKT_LOSS" | bc -l || echo "$warning_rtt<$DG_RTT" | bc -l`
+        if [[ $varc == 1 ]];then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+	elif [[ $varw == 1 ]]; then
+		echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 1;
+	else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+		exit 0;
+        fi
+###ALARM WARNING LOSS & CRITICAL LOSS
+elif [[ $warning_loss != "" && $critical_loss != "" && $warning_rtt == "" && $critical_rtt == "" ]]; then
+        varc=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l`
+        varw=`echo "$warning_loss<$DG_PKT_LOSS" | bc -l`
+        if [[ $varc == 1 ]] ;then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+        elif [[ $varw == 1 ]];then
+                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 1;
+        else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 0;
+        fi
+###ALARM WARNING RTT & CRITICAL RTT
+elif [[ $warning_loss == "" && $critical_loss == "" && $warning_rtt != "" && $critical_rtt != "" ]]; then
+        varc=`echo "$critical_rtt<$DG_RTT" | bc -l`
+	varw=`echo "$warning_rtt<$DG_RTT" | bc -l`
+        if [[ $varc == 1 ]] ;then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+        elif [[ $varw == 1 ]];then
+                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 1;
+        else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 0;
+        fi
+###ALARM CRITICAL RTT & CRITICAL LOSS
+elif [[ $critical_loss != "" && $critical_rtt != "" && $warning_rtt == "" && $warning_loss == "" ]]; then
+        var=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l || echo "$critical_rtt<$DG_RTT" | bc -l`
+        if [[ $var == 1 ]];then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+        else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 0;
+        fi
+###ALARM CRITICAL RTT
+elif [[ $critical_loss == "" && $critical_rtt != "" && $warning_rtt == "" && $warning_loss == "" ]]; then
+	var=`echo "$critical_rtt<$DG_RTT" | bc -l`
+        if  [[ $var == 1 ]] ; then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+        else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT$=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+	        exit 0;
+	fi
+###ALARM CRITICAL LOSS
+elif [[ $critical_loss != "" && $critical_rtt == "" && $warning_rtt == "" && $warning_loss == "" ]]; then
+        var=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l`
+        if [[ $var == 1 ]] ;then
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 2;
+	else
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                exit 0;
+        fi
+elif [[ $critical_loss == "" && $critical_rtt == "" && $warning_rtt == "" && $warning_loss == "" ]]; then
+	if [[ $DG_STATUS == 0 ]]; then
+		echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+        exit 0;
+	fi
+###OUT
+else
+        echo -e "CHECK YOUR CONFIGURATION ./check_fortigate_dead_gateway -h"
+        exit 0;
+fi
