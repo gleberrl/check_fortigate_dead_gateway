@@ -118,17 +118,22 @@ do
     esac
 done
 
+if [[ $arg == "" ]]; then
+        printf "$HELP"
+        exit
+fi
+
 ###DATA INPUT - Check the required argument(s)
 if [[ $community != "0"  &&  $ip != "0"  &&  $snmp_version == "2" ]]; then
 	DG_STATUS=`snmpget $ip -v 2c -c $community $DG_STATUS_COMMUNITY -Ov | awk '{ printf $2 }'`
-        DG_RTT=`snmpget $ip -v 2c -c $community $DG_RTT_COMMUNITY -Ov | awk '{ printf $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l` 
-        DG_PKT_LOSS=`snmpget $ip -v 2c -c $community $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ printf $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
+        DG_RTT=`snmpget $ip -v 2c -c $community $DG_RTT_COMMUNITY -Ov | awk '{ printf $2 }' | grep '[0-9]\.[0-9]\+' | bc -l` 
+        DG_PKT_LOSS=`snmpget $ip -v 2c -c $community $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ printf $2 }' | grep '[0-9]\.[0-9]\+' | bc -l`
 fi
 
 if [[ $ip != "0"  &&  $snmp_version == "3" ]]; then
 	DG_STATUS=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_STATUS_COMMUNITY -Ov | awk '{ printf $2 }'`
-	DG_RTT=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_RTT_COMMUNITY -Ov | awk '{ print $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
-	DG_PKT_LOSS=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ print $2 }' | grep -o '[0-9]\.[0-9]\+' | bc -l`
+	DG_RTT=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_RTT_COMMUNITY -Ov | awk '{ print $2 }' | grep '[0-9]\.[0-9]\+' | bc -l`
+	DG_PKT_LOSS=`snmpget $ip -v $snmp_version -a $protocol_security -A $authentication_passphrase -l $security_level -x $protocol_key -X $protocol_passphrase -u $username $DG_PKT_LOSS_COMMUNITY -Ov | awk '{ print $2 }' | grep '[0-9]\.[0-9]\+' | bc -l`
 fi
 
 ###########OUTPUT
