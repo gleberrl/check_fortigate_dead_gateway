@@ -153,20 +153,20 @@ elif [[ $warning_rtt != "" && $critical_rtt == "" ]]; then
         exit 3;
 ###DG_STATUS
 elif [[ $DG_STATUS == 1 ]]; then
-        echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+        echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
         exit 2;
 ###ALL ALARMS
 elif [[ $critical_loss != "" && $critical_rtt != "" && $warning_rtt != "" && $warning_loss != "" ]]; then
 	varc=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l || echo "$critical_rtt<$DG_RTT" | bc -l`
 	varw=`echo "$warning_loss<$DG_PKT_LOSS" | bc -l || echo "$warning_rtt<$DG_RTT" | bc -l`
         if [[ $varc == 1 ]];then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
 	elif [[ $varw == 1 ]]; then
-		echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+		echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 1;
 	else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
 		exit 0;
         fi
 ###ALARM WARNING LOSS & CRITICAL LOSS
@@ -174,13 +174,13 @@ elif [[ $warning_loss != "" && $critical_loss != "" && $warning_rtt == "" && $cr
         varc=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l`
         varw=`echo "$warning_loss<$DG_PKT_LOSS" | bc -l`
         if [[ $varc == 1 ]] ;then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
         elif [[ $varw == 1 ]];then
-                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 1;
         else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 0;
         fi
 ###ALARM WARNING RTT & CRITICAL RTT
@@ -188,48 +188,48 @@ elif [[ $warning_loss == "" && $critical_loss == "" && $warning_rtt != "" && $cr
         varc=`echo "$critical_rtt<$DG_RTT" | bc -l`
 	varw=`echo "$warning_rtt<$DG_RTT" | bc -l`
         if [[ $varc == 1 ]] ;then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
         elif [[ $varw == 1 ]];then
-                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "WARNING - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 1;
         else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 0;
         fi
 ###ALARM CRITICAL RTT & CRITICAL LOSS
 elif [[ $critical_loss != "" && $critical_rtt != "" && $warning_rtt == "" && $warning_loss == "" ]]; then
         var=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l || echo "$critical_rtt<$DG_RTT" | bc -l`
         if [[ $var == 1 ]];then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
         else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 0;
         fi
 ###ALARM CRITICAL RTT
 elif [[ $critical_loss == "" && $critical_rtt != "" && $warning_rtt == "" && $warning_loss == "" ]]; then
 	var=`echo "$critical_rtt<$DG_RTT" | bc -l`
         if  [[ $var == 1 ]] ; then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
         else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT$=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT$=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
 	        exit 0;
 	fi
 ###ALARM CRITICAL LOSS
 elif [[ $critical_loss != "" && $critical_rtt == "" && $warning_rtt == "" && $warning_loss == "" ]]; then
         var=`echo "$critical_loss<$DG_PKT_LOSS" | bc -l`
         if [[ $var == 1 ]] ;then
-                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "CRITICAL - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 2;
 	else
-                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+                echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
                 exit 0;
         fi
 elif [[ $critical_loss == "" && $critical_rtt == "" && $warning_rtt == "" && $warning_loss == "" ]]; then
 	if [[ $DG_STATUS == 0 ]]; then
-		echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS% | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS%"
+		echo -e "OK - DG STATUS = $DG_STATUS_OUTPUT, DG RTT = $DG_RTT ms, DG LOSS = $DG_PKT_LOSS | RTT$SERVICEOUTPUT=$DG_RTT PKT_LOSS$SERVICEOUTPUT1=$DG_PKT_LOSS"
         exit 0;
 	fi
 ###OUT
